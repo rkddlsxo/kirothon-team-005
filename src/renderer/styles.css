@@ -99,6 +99,9 @@ summary:hover { color:var(--ink); }
   border:1px solid var(--line); border-left:3px solid var(--brand);
 }
 .quickCard h2 { margin:0 0 6px; color:var(--brand); }
+/* 응답 영역이 위로 올라왔으므로 결과가 있을 때 입력칸과 띄운다 */
+#results:not([hidden]) + .input { margin-top:18px; padding-top:14px; border-top:1px solid var(--line); }
+.quickCard { margin-bottom:12px; }
 .quickText { font-size:14px; line-height:1.6; margin:0 0 8px; }
 .quickCard .meta { margin-bottom:0; }
 

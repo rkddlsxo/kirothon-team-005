@@ -28,7 +28,7 @@ test('정상 흐름: 검색 -> 출처 -> 결과 순으로 이벤트가 발생한
 test('결과에는 실제로 호출한 공급자를 표시한다(생성 중 공급자가 바뀌어도)', async () => {
   const events = [];
   const fake = createFakeProvider();
-  const used = { id: 'kiro', label: 'Kiro CLI', generate: async (a) => { current = other; return fake.generate(a); } };
+  const used = { id: 'kiro', label: 'Kiro CLI', generate: async (a) => { if (a.kind === 'full') current = other; return fake.generate(a); } };
   const other = { id: 'openai', label: 'OpenAI 호환', generate: fake.generate };
   let current = used;
   const svc = createService({ getProvider: () => current, search: okSearch, emit: (e) => events.push(e) });
@@ -39,6 +39,56 @@ test('결과에는 실제로 호출한 공급자를 표시한다(생성 중 공�
   assert.equal(r.providerId, 'kiro');
   assert.equal(r.provider, 'Kiro CLI');
   assert.equal(r.result.context, '테스트용 고정 맥락');
+});
+
+test('한 줄 뜻: 전체 결과와 따로 AI에 물어 quick 이벤트로 보내고, 공급자를 표시한다', async () => {
+  const kinds = [];
+  const fake = createFakeProvider();
+  const provider = { id: 'kiro', label: 'Kiro CLI', generate: async (a) => { kinds.push(a.kind); return fake.generate(a); } };
+  const { svc, events } = setup({ provider });
+  await svc.analyze('나 요즘 치이카와 토벌하러 가야해');
+  await new Promise((r) => setImmediate(r));   // 한 줄 뜻은 analyze가 기다리지 않는다
+  assert.deepEqual([...kinds].sort(), ['full', 'quick']);
+  const q = events.find((e) => e.type === 'quick');
+  assert.equal(q.oneLine, '나 요즘 치이카와 토벌하러 가야해에 대한 한 줄 뜻');
+  assert.equal(q.confidence, 'high');
+  assert.equal(q.providerId, 'kiro');
+  assert.equal(q.requestId, events.find((e) => e.type === 'result').requestId);
+});
+
+test('한 줄 뜻: quick:false면 호출하지 않고, 실패해도 전체 결과에는 영향이 없다', async () => {
+  const kinds = [];
+  const fake = createFakeProvider();
+  const off = { id: 'kiro', label: 'k', generate: async (a) => { kinds.push(a.kind); return fake.generate(a); } };
+  const a = setup({ provider: off });
+  await a.svc.analyze('소프트웨어 테스트', { quick: false });
+  assert.deepEqual(kinds, ['full']);
+  assert.ok(!a.events.some((e) => e.type === 'quick'));
+
+  const failing = { id: 'kiro', label: 'k', generate: async (x) => { if (x.kind === 'quick') throw new Error('boom'); return fake.generate(x); } };
+  const b = setup({ provider: failing });
+  await b.svc.analyze('소프트웨어 테스트');
+  await new Promise((r) => setImmediate(r));
+  assert.ok(b.events.some((e) => e.type === 'result'));
+  assert.ok(!b.events.some((e) => e.type === 'quick' || e.type === 'error'));
+});
+
+test('한 줄 뜻: 새 분석이 시작된 뒤 늦게 온 이전 한 줄 뜻은 보내지 않는다', async () => {
+  const gates = [];
+  const fake = createFakeProvider();
+  const provider = { id: 'kiro', label: 'k', generate: (a) => (a.kind === 'quick' ? new Promise((res) => gates.push(() => res(fake.generate(a)))) : fake.generate(a)) };
+  const { svc, events } = setup({ provider });
+  const p1 = svc.analyze('첫 번째 주제');
+  await new Promise((r) => setImmediate(r));
+  const p2 = svc.analyze('두 번째 주제');
+  await new Promise((r) => setImmediate(r));
+  gates.forEach((g) => g());
+  await Promise.all([p1, p2]);
+  await new Promise((r) => setImmediate(r));
+  const quicks = events.filter((e) => e.type === 'quick');
+  assert.equal(quicks.length, 1);
+  assert.equal(quicks[0].requestId, svc._currentId());
+  assert.match(quicks[0].oneLine, /^두 번째 주제/);
 });
 
 test('빈 입력은 처리하지 않고 invalid 이벤트만 발생', async () => {
@@ -75,7 +125,7 @@ test('생성 실패 시 retryable 오류를 알리고 retry로 복구된다', as
 
 test('모델이 JSON이 아닌 응답을 두 번 주면 오류로 처리한다(재시도는 한 번만)', async () => {
   let calls = 0;
-  const provider = { id: 'x', label: 'x', generate: async () => { calls++; return '죄송합니다'; } };
+  const provider = { id: 'x', label: 'x', generate: async (a) => { if (a.kind === 'full') calls++; return '죄송합니다'; } };
   const { svc, events } = setup({ provider });
   await svc.analyze('소프트웨어 테스트');
   assert.equal(calls, 2);
@@ -87,7 +137,7 @@ test('실측에서 나온 깨진 JSON(따옴표 없는 문자열 값)이면 한 
   const fake = createFakeProvider();
   let calls = 0;
   const broken = '{"statements":[],"questions":[{"question":같이 갈래요?,"answers":[]}]}';
-  const provider = { id: 'kiro', label: 'Kiro CLI', generate: async (a) => (++calls === 1 ? broken : fake.generate(a)) };
+  const provider = { id: 'kiro', label: 'Kiro CLI', generate: async (a) => (a.kind !== 'full' ? fake.generate(a) : ++calls === 1 ? broken : fake.generate(a)) };
   const { svc, events } = setup({ provider });
   await svc.analyze('소프트웨어 테스트');
   assert.equal(calls, 2);

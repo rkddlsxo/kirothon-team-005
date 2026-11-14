@@ -3,7 +3,7 @@
 const { validateInput } = require('./textGuard');
 const { searchTopic } = require('../ai/search');
 const prompt = require('../ai/prompt');
-const { normalizeResult, normalizeAnswers, extractJson } = require('../ai/schema');
+const { normalizeResult, normalizeAnswers, normalizeQuick, extractJson } = require('../ai/schema');
 
 function createService({ getProvider, search = searchTopic, emit = () => {} }) {
   let seq = 0;            // 요청 ID (새 분석마다 증가)
@@ -58,13 +58,28 @@ function createService({ getProvider, search = searchTopic, emit = () => {} }) {
     }
   }
 
-  async function analyze(rawText, { tone = 'casual', note = '', direction = '' } = {}) {
+  /**
+   * 한 줄 뜻: 검색·전체 생성과 동시에 짧은 프롬프트로 AI에 따로 묻는다. 실패해도 전체 흐름에는 영향이 없다.
+   * 새 분석이 시작되면 같은 signal로 취소되고, 늦게 온 응답은 send()가 버린다.
+   */
+  async function quickMeaning(id, signal) {
+    const provider = getProvider();
+    try {
+      const json = await callModel(session, prompt.buildQuickPrompt(session), { kind: 'quick' }, signal, provider);
+      const q = normalizeQuick(json);
+      if (q) send(id, { type: 'quick', ...q, provider: provider.label, providerId: provider.id });
+    } catch { /* 한 줄 뜻은 보조 정보라 실패를 따로 알리지 않는다 */ }
+  }
+
+  async function analyze(rawText, { tone = 'casual', note = '', direction = '', quick = true } = {}) {
     const v = validateInput(rawText);
     if (!v.ok) { emit({ requestId: seq, type: 'invalid', ...v }); return { ok: false, ...v }; }
     const { id, signal } = begin();
     session = { text: v.text, tone: prompt.toneOf(tone), note: String(note).slice(0, 300), direction: String(direction).slice(0, 80), sources: [], searchStatus: 'pending', result: null, topicHint: '', contextHint: '' };
     send(id, { type: 'start', text: v.text, tone: session.tone });
     send(id, { type: 'stage', stage: 'searching' });
+    // 기다리지 않는다: 한 줄 뜻은 보조 정보라 analyze의 완료를 늦추지 않는다(오류는 quickMeaning 안에서 삼킨다).
+    if (quick) quickMeaning(id, signal);
     let found;
     try {
       found = await search(session.note ? `${v.text} ${session.note}` : v.text, { signal });

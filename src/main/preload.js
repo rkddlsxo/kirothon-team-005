@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('api', {
   kiroLoginOpen: () => ipcRenderer.invoke('kiro-login-open'),
   openKiroInstall: () => ipcRenderer.invoke('open-kiro-install'),
   skipLogin: () => ipcRenderer.invoke('skip-login'),
+  setQuick: (on) => ipcRenderer.invoke('set-quick', on),
   copy: (t) => ipcRenderer.invoke('copy', t),
   hide: () => ipcRenderer.invoke('hide'),
   openLink: (u) => ipcRenderer.invoke('open-link', u),
