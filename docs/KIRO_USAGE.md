@@ -6,10 +6,10 @@
 
 | 기능 | 위치 | 개수 | 검증 |
 |---|---|---|---|
-| Specs | `.kiro/specs/` | 2개(제품, B 품질 개선) | tasks.md의 커밋·테스트 참조 |
+| Specs | `.kiro/specs/` | 3개(제품, B 품질 개선, A 데스크톱 안정화) | tasks.md의 커밋·테스트 참조 |
 | Steering | `.kiro/steering/` | 12개(always 6, fileMatch 4, auto 1, manual 1) | - |
-| Hooks | `.kiro/hooks/` | 11개, 트리거 8종 | `test/hooks/hooks.test.js`, `test/hooks/config.test.js` |
-| MCP | `scripts/mcp/cheatsheet-mcp.js` | 도구 6개 | `test/mcp/cheatsheet-mcp.test.js` |
+| Hooks | `.kiro/hooks/` | 12개(B 공통 11, A `desktop-smoke-after-task` 1), 트리거 8종 | `test/hooks/hooks.test.js`, `test/hooks/config.test.js` |
+| MCP | `scripts/mcp/cheatsheet-mcp.js` | 도구 5개 | `test/mcp/cheatsheet-mcp.test.js` |
 | Custom agents | `.kiro/agents/` | 5개(역할 A·B·C, 보안 검토, PRD 오케스트레이터) | - |
 | Skills | `.kiro/skills/` | 4개 | - |
 | Workflows | `.kiro/workflows/` | 3개 | - |
@@ -18,7 +18,8 @@
 ## Specs: 요구사항 -> 설계 -> 작업
 
 - `conversation-cheatsheet/`: PRD를 EARS 형식 요구사항 10개, 설계(아키텍처, 정확성 속성 5개), 작업 목록으로 옮긴 제품 명세.
-- `ai-search-quality/`: B 역할의 품질 개선 명세. 요구사항 7개, 정확성 속성 5개, 작업마다 커밋 해시와 검증 테스트를 적었다. 남은 작업(Task 6, 실측 기반 튜닝)도 그대로 남겨 두었다.
+- `ai-search-quality/`: B 역할의 품질 개선 명세. 요구사항 8개, 정확성 속성 5개, 작업마다 커밋 해시와 검증 테스트를 적었다. 사람이 해야 할 남은 작업(6.3, 8.5)도 그대로 남겨 두었다.
+- `desktop-compat-hardening/`: A 역할의 데스크톱 안정화 명세. 요구사항 8개(호환성 측정, 미지원 안내, 창 배치, 패키징, 메신저 드래그, Kiro 로그인 화면), 정확성 속성 3개, 실기기 확인 작업은 사용자 몫으로 남겼다.
 
 ## Steering: 언제 무엇을 읽게 하는가
 
