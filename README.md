@@ -4,7 +4,7 @@
 
 대화 중 모르는 말이 나왔을 때, 화면의 그 텍스트를 드래그만 하면 바로 꺼낼 수 있는 문장과 예상 질문 답변, 화제 전환 문장을 보여 주는 Windows 데스크톱 대화 보조 앱입니다.
 
-**Demo:** Windows 11용 실행 파일(프리릴리스) [v0.1.0 다운로드](https://github.com/rkddlsxo/kirothon-team-005/releases/tag/v0.1.0) (Kiro CLI 설치·로그인 필요). 시연 영상: _(녹화 후 추가)_
+**Demo:** Windows 11용 실행 파일(프리릴리스) [v0.1.0 다운로드](https://github.com/rkddlsxo/kirothon-team-005/releases/tag/v0.1.0) (Kiro CLI 설치·로그인 필요). 시연 영상: https://www.youtube.com/watch?v=CRDiLVGu2TQ&feature=youtu.be
 
 ![결과 창](docs/assets/screenshot.png)
 
