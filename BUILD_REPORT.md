@@ -16,6 +16,7 @@
 |---|---|---|---|
 | 기획 | Skill(`prd-to-repo`), Workflow(`prd-to-repo`), Steering(`00-prd-first`) | PRD.md를 읽고 FR-01~08, 비기능 요구, 완료 기준을 EARS 형식 요구사항 10개로 옮김. PRD를 먼저 읽게 하는 규칙을 항상 포함 steering으로 고정 | `.kiro/specs/conversation-cheatsheet/requirements.md`, `.kiro/skills/prd-to-repo/`, `.kiro/workflows/prd-to-repo.workflow.yaml` |
 | 기획 | Spec(requirements) x 2 추가 | B: 검색·출처 품질과 Kiro 실측 요구사항 8개(EARS). A: 데스크톱 안정화 요구사항 8개(호환성 측정, 미지원 안내, 창 배치, 패키징, 메신저 드래그, Kiro 로그인 화면) | `.kiro/specs/ai-search-quality/requirements.md`, `.kiro/specs/desktop-compat-hardening/requirements.md` |
+| 기획 | Plan 모드(질문 -> 계획 -> 승인 -> 실행) (A) | 메신저 드래그와 Kiro 로그인 화면은 먼저 선택지 질문으로 요구사항을 정하고(예: 복사 옵션은 사용자가 켬, OpenAI 설정이 있어도 Kiro 로그인 필수, '나중에 하기' 둠), 작업별 목표·테스트·데모가 있는 계획을 승인받은 뒤 실행 | `desktop-compat-hardening/tasks.md` 9, 10 |
 | 설계 | Spec(design) | 제품: 코어(`src/core`)와 Electron 어댑터 분리, Provider 추상화, 정확성 속성 5개. B: 정확성 속성 5개(구분자 탈출 불가, 출처 ID·내용 검증 등). A: 정확성 속성 3개(창이 항상 작업 영역 안 등) | 각 spec의 `design.md` |
 | 설계 | Spec(tasks) | 세 spec 모두 의존성 그래프(waves)가 있는 작업 목록. 완료 작업마다 커밋 해시와 검증 테스트를 적고, 사람이 해야 할 실측 작업은 체크하지 않고 남김 | 각 spec의 `tasks.md` |
 | 설계 | Steering 12개 | always 6(PRD 우선, 제품, 기술, 구조, 팀, 보안), fileMatch 4(AI, 데스크톱, 렌더러, 테스트), auto 1(Kiro 실측), manual 1(릴리스 체크리스트). `#[[file:...]]`로 설계 문서와 보안 검토를 직접 참조 | `.kiro/steering/` |
@@ -27,10 +28,12 @@
 | 검증 | Hooks 12개 | 위험한 git 명령 차단, 비밀값 쓰기 차단, 공유 영역 쓰기 확인, 저장 시 해당 영역 테스트와 보안 점검, 작업 전 소유권 확인, 작업 후·종료 시 전체 테스트, 작업 후 스모크(A), 세션 시작·압축 후 역할 정보 주입. 판단 로직은 순수 함수로 두고 테스트함 | `.kiro/hooks/`, `scripts/hooks/`, `test/hooks/` |
 | 검증 | MCP 서버 `cheatsheet-dev`(도구 5개) | 앱의 실제 모듈로 위키백과 검색, 실제 프롬프트 생성(이스케이프 확인), 응답 정규화와 출처 강등 확인, 근거 점수, 브랜치 상태·테스트 실행을 Kiro 도구로 노출 | `scripts/mcp/cheatsheet-mcp.js`, `.kiro/settings/mcp.json`, `test/mcp/` |
 | 검증 | Skill(`kiro-measure`) + 실측 스크립트 | Kiro CLI 응답 시간, JSON 파싱률, 목표 개수 충족률을 숫자만 남겨 측정. 스킬의 조치 표(JSON 실패, 개수 미달, 60초 초과, 출처 연결 0)로 튜닝 여부를 판단 | `.kiro/skills/kiro-measure/`, `scripts/measure-kiro.js`, `ai-search-quality/tasks.md` Task 6 |
+| 검증 | 실제 창 확인 (A) | B의 Kiro 연결 표시를 가짜 kiro-cli 경로로 연결됨·로그인 필요·미설치 세 상태 모두 실제 창에서 찍어 확인. 로그인 화면 흐름을 `node scripts/smoke.js --gate`로 자동화. 패키징 앱도 두 스모크로 확인 | `scripts/smoke.js`, `src/main/main.js` `runSmokeGate` |
 | 검증 | Sub-agent 코드 리뷰 (A) | semantic reviewer로 A 변경분을 검토해 중간 5건, 낮음 8건을 받고, 조치 가능한 항목을 고친 뒤 정적 점검 규칙을 추가 | `docs/handoff/A-review.md`, `docs/SECURITY_REVIEW.md` |
 | 검증 | Skill(`source-grounding-review`, `release-check`), Workflow(`ai-quality-loop`, `pre-merge-review`) | 출처 근거 검토 절차와 합치기 전 확인 절차를 스킬로 고정. 품질 개선 루프(최대 3회 반복 후 보안·출처 검토 병렬)와 합치기 전 검토(보안·테스트·소유권 병렬)를 워크플로로 정의 | `.kiro/skills/`, `.kiro/workflows/` |
 | 기타 | Sub-agent(introspect) | Kiro CLI의 웹 검색 도구 이름과 비대화형 권한 동작을 공식 문서로 확인(밈 검색 보강 가능성 판단용) | 이 문서 "어려웠던 점" |
 | 기타 | Kiro Crew 연동 안내 | Crew에서 이 저장소와 PRD.md로 `prd-to-repo` 스킬을 실행하는 요청문을 정리 | `docs/CREW_INTEGRATION.md` |
+| 기타 | GitHub 릴리스 (A) | 최신 main으로 exe를 다시 빌드하고 패키징 앱 스모크 후 v0.1.0 프리릴리스에 첨부. 올라간 파일을 다시 받아 SHA256이 빌드 결과와 같은지 확인하고 해시를 릴리스 본문에 적음 | [Releases v0.1.0](https://github.com/rkddlsxo/kirothon-team-005/releases/tag/v0.1.0) |
 | 기타 | Kiro로 발표·문서 | README, 보안 검토(위협 표), 호환성 표, 역할별 인수인계, 발표 HTML과 PDF | `README.md`, `docs/`, `PRESENTATION.pdf` |
 
 기능별 상세 정리는 [docs/KIRO_USAGE.md](docs/KIRO_USAGE.md)에 있습니다.
@@ -45,6 +48,11 @@
 - **카카오톡·디스코드 드래그(PR #4)**: 커서 아래 요소와 상위 10단계를 탐색하고, 사용자가 동의하고 켠 경우에만 허용 메신저에서 Ctrl+C로 복사한 뒤 클립보드를 원래대로 되돌립니다. DPI 좌표 맞춤도 함께 고쳤습니다.
 - **Kiro 로그인 첫 화면(PR #5)**: Kiro가 연결되지 않았으면 첫 화면에서 GitHub, Google, AWS Builder ID로 `kiro-cli login`을 실행합니다. CLI 출력 원문은 저장하지 않고 허용 도메인 주소와 일회용 코드만 뽑습니다. 사용자가 로그아웃 상태에서 실제 브라우저 로그인을 확인했습니다.
 - **패키징·릴리스(PR #6)**: `npm run dist`로 휴대용 exe(105MB)를 만들고 `win-unpacked`를 스모크 모드로 확인했습니다. README Demo 줄에 v0.1.0 프리릴리스 링크를 넣었습니다.
+- **공급자별 동의**: B가 오프라인 모드를 없애면서, "이 PC에서만 처리"로 동의했던 사용자가 확인 없이 Kiro로 전송되는 문제가 생겼습니다. 동의를 공급자별로 저장(`consentProvider`)하고, 예전 동의나 다른 공급자에 대한 동의는 인정하지 않아 자동 분석을 끄고 다시 묻습니다. 동의 창 문구도 "선택한 내용과 검색 자료가 Kiro 서비스로 전달돼요"로 고쳤습니다.
+- **메신저 동의 위치**: 트레이 메뉴의 옵션을 사용자가 찾기 어려워해서, 자동 분석을 켤 때 메신저 드래그 복사 동의 창을 함께 띄우고 '다시 묻지 않기'(`copyFallbackNoAsk`)를 둡니다.
+- **B 인수인계 확인**: B가 A 영역(`src/main/`)에 넣은 Kiro 연결 표시, `check-kiro` IPC, kiro-cli 경로 찾기를 실제 창과 패키징 exe에서 확인했습니다. Kiro CLI는 공식 설치 스크립트 내용을 먼저 읽고(SHA256 검증 후 MSI 설치) 설치해, 경로 찾기가 `%LOCALAPPDATA%\Kiro-Cli\kiro-cli.exe`를 찾는 것도 확인했습니다.
+- **클립보드 보존 검증**: 복사 옵션의 백업·복원을 텍스트+HTML+RTF, 이미지, 파일 목록, 빈 클립보드, 되돌릴 수 없는 형식 5가지로 실제 실행해 확인했습니다. 이 과정에서 HTML이 빈 값일 때 복원이 실패하는 버그를 찾아 고쳤습니다.
+- **정적 점검 규칙**: 키 입력은 `Invoke-CopyFallback` 안에서 허용 확인 뒤에만, 클립보드 읽기는 정해진 함수 안에서만, 출력은 `Emit` 한 곳, `openExternal`은 주소 검사 뒤에만 하도록 `scripts/check.js`에 규칙을 넣었습니다. 위반 코드를 7가지 넣어 모두 실패하는 것을 확인했습니다.
 - **리뷰 반영**: semantic reviewer가 잡은 결함(창 이동에도 뜨는 안내, 안내 문구와 단축키 동작 불일치, 왼손잡이 마우스 반전, 절대 경로 조합 오류)을 고쳤습니다.
 
 ### B. AI·검색과 Kiro 개발 환경 (`.kiro/specs/ai-search-quality/`, 작업 1~8)
@@ -75,6 +83,9 @@
 | 회의·업무 상황 중심 | 일상 대화(메신저 단톡방, 모임)가 기본. 실측 표본도 일상 문장으로 교체 | 사용자 피드백: 거의 일상 대화 용도 |
 | 한 줄 뜻은 검색 결과 첫 문장 | 한 줄 뜻도 Kiro가 따로 짧게 답하고, 응답 영역을 입력칸 위로 올림 | 검색 첫 문장은 AI 답변이 아니라 맥락이 없었고, 전체 결과(약 20초)를 기다리는 동안 볼 것이 필요했음 |
 | 메모장·브라우저처럼 UI Automation이 되는 프로그램만 지원 | 카카오톡·디스코드는 커서 아래 요소 탐색, 안 되면 사용자가 켜는 복사 옵션 | 실측에서 카카오톡 말풍선은 UI Automation으로 선택을 알려 주지 않았음 |
+| 자동 분석을 처음 켤 때 한 번만 동의 | 문장을 만드는 AI(공급자)별로 동의를 받고, 바뀌면 다시 물음 | 오프라인 모드가 없어지면서 예전 동의(이 PC에서만 처리)가 외부 전송에 그대로 쓰일 수 있었음(A가 B 인수인계를 확인하다 발견) |
+| 메신저 복사 옵션은 트레이 메뉴에서만 켬 | 자동 분석을 켤 때 함께 묻고, 트레이에서도 켜고 끔 | 실사용에서 트레이 아이콘(숨겨진 아이콘 영역)을 찾기 어려웠음 |
+| A 전용 저장 시 테스트 Hook | B의 공통 Hook(`test-on-save`, `security-check-on-save`)으로 통합하고 A는 작업 후 스모크 Hook만 유지 | 같은 검사가 두 번 돌았음. B의 Hook 설정 테스트 규칙(node 직접 호출)에 맞춤 |
 | 검증 명령은 사람이 기억해서 실행 | Hook으로 저장 시 테스트·보안 점검, 작업 후 전체 테스트·스모크를 자동 실행 | 세 사람이 공유 파일(`service.js`, `main.js`)을 함께 고치면서 계약이 깨질 위험이 커졌음 |
 
 ## 어려웠던 점과 해결 방법
@@ -84,6 +95,8 @@
 - **모델이 최신 밈을 모름**: 프롬프트만으로는 학습 이후 밈을 알게 할 수 없습니다. Kiro CLI의 웹 검색 도구(`remote_web_search`)를 허용해 시험했지만, 이벤트 402개 중 도구 호출이 0건이라 이 방식은 쓰지 않았습니다. 대신 밈 유형 점검표로 아는 밈을 빠짐없이 찾게 하고, 모르면 "AI 추정"으로 정직하게 표시하게 했습니다. 실측에서 "럭키비키, 원영적 사고, 폼 미쳤다, 갓생, 킹받네, 알잘딱깔센"은 정확히 풀었고 "토벌"만 확신이 낮게 나왔습니다.
 - **아는척과 정직함의 균형**: 아는척을 강하게 시키자 "봤지 ㅋㅋ"처럼 사용자의 경험을 지어내는 경우가 나왔습니다. 경험·소유는 지어내지 말고, 확실하지 않은 날짜·숫자·줄거리는 꺼내지 않게 규칙을 나눴습니다.
 - **에이전트가 다른 앱에 키 입력을 보낼 수 없음(A)**: 카카오톡 복사 경로를 에이전트 환경에서 끝까지 실행하지 못했습니다. 판단 로직은 단위 테스트와 `check.js` 규칙으로 고정하고, 실기기 확인은 `docs/COMPATIBILITY.md` 체크리스트로 사람이 했습니다.
+- **화면 배율과 좌표 어긋남(A)**: 125% 배율에서 PowerShell의 커서 좌표와 UI Automation 좌표가 달라 '드래그가 컨트롤 안에서 시작했는지' 판정이 어긋났습니다(검증용 스크린샷도 잘려 나와 발견). 헬퍼와 측정 도구에서 `SetProcessDPIAware`를 호출해 물리 픽셀로 맞췄습니다.
+- **단위 테스트는 통과했는데 실제로는 실패(A)**: PowerShell 절대 경로를 잘못 조합해 헬퍼가 실행되지 않았는데 단위 테스트는 통과했습니다. 실제 실행으로 발견해 고치고, 경로가 실제로 있는지 확인하는 테스트를 추가했습니다.
 - **Windows 실행 정책**: 한동안 서명되지 않은 `electron.exe` 실행이 막혔습니다(C). 실제 `renderer.js`를 가짜 DOM에서 돌리는 임시 하네스로 24개 항목을 확인하고, PDF는 서명된 Edge로 만들었습니다. 모든 Hook과 스크립트는 `node`를 직접 호출해 PowerShell 정책의 영향을 받지 않게 했습니다.
 - **역할 간 머지 충돌**: 세 사람이 같은 날 `src/main/main.js`, `preload.js`, `index.html`을 함께 고쳐 충돌이 났습니다. 예를 들어 로그인 화면(A)과 한 줄 뜻(B)이 겹쳤습니다. 양쪽을 모두 살려 해결하고, 합칠 때마다 테스트·보안 점검·스모크를 다시 돌렸습니다.
 - **Kiro IDE에서 Hook이 동작하지 않음**: B 세션에서 `guard-shell`이 `git reset --hard`를 막지 못했고(작업 트리가 깨끗해 손실은 없었음), `guard-write`도 확인 창을 띄우지 않았습니다. Hook 정의가 Kiro CLI 형식이라 IDE가 읽지 않은 것으로 보입니다(원인 미확정). 같은 판단 로직을 `npm run check`와 테스트로도 돌려 보완했습니다.
@@ -98,7 +111,8 @@
   - 밈 해설 3회: JSON 3/3, 뜻풀이 7개 중 확실 6개·추정 1개, 목표 미달 1회(활용 문장 1/5).
   - 아는척 3회: 모르는 티 나는 표현 0/46문장, 목표 충족 3/3, 19~22초.
   - 한 줄 뜻 2회: 약 6초.
-- 패키징: `npm run dist`로 휴대용 exe 생성, `win-unpacked` 스모크 통과(A).
+- 로그인 화면: `node scripts/smoke.js --gate`로 첫 화면이 로그인 화면이고, '나중에 하기' 후 메인 화면, 분석을 누르면 다시 로그인 화면인지 확인(A).
+- 패키징: 최신 main으로 `npm run dist`, `win-unpacked`에서 일반 스모크와 로그인 화면 스모크 모두 통과. v0.1.0 릴리스에 올린 파일을 다시 받아 SHA256 일치 확인(A).
 - 사람이 확인: 로그아웃 상태에서 실제 브라우저 로그인 후 메인 화면 전환(A), 카카오톡 말풍선 드래그 복사 옵션 동작(A, `docs/COMPATIBILITY.md` 체크리스트 일부).
 
 ## 검증하지 못한 항목
