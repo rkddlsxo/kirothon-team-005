@@ -81,10 +81,14 @@ function kiroProvider() {
   };
 }
 
+// '뜻 먼저 보기'(한 줄 뜻 AI 호출) 사용 여부. 렌더러 스위치가 set-quick으로 알려 준다.
+let quickPref = true;
+
 // 스모크 테스트(npm run smoke) 전용 고정 응답. 외부 AI 없이 화면 렌더링만 확인한다. 일반 실행에서는 쓰지 않는다.
 const smokeProvider = {
   id: 'smoke', label: '스모크 테스트 고정 응답', external: false,
-  async generate() {
+  async generate({ kind } = {}) {
+    if (kind === 'quick') return JSON.stringify({ oneLine: '스모크 테스트 한 줄 뜻', confidence: 'high' });
     const s = (text) => ({ text, basis: 'general', sourceIds: [] });
     const q = (question) => ({ question, answers: [{ text: '답변 1', sourceIds: [] }, { text: '답변 2', sourceIds: [] }] });
     return JSON.stringify({
@@ -234,7 +238,7 @@ function onSelection({ text, pid, via }) {
   showNearCursor();
   if (!v.ok) { toRenderer('svc-event', { type: 'invalid', ...v, requestId: 0, incomingText: text.slice(0, 200) }); return; }
   toRenderer('incoming', { text: v.text, source: 'selection' });
-  service.analyze(v.text, { tone: settings.get().tone });
+  service.analyze(v.text, { tone: settings.get().tone, quick: quickPref });
 }
 
 const isCopyApp = (proc) => typeof proc === 'string' && COPY_APPS.some((a) => a.toLowerCase() === proc.toLowerCase());
@@ -258,7 +262,7 @@ function analyzeClipboard() {
   showNearCursor({ focus: true });
   if (!v.ok) { toRenderer('svc-event', { type: 'invalid', ...v, requestId: 0 }); return; }
   toRenderer('incoming', { text: v.text, source: 'clipboard' });
-  service.analyze(v.text, { tone: settings.get().tone });
+  service.analyze(v.text, { tone: settings.get().tone, quick: quickPref });
 }
 
 // ---------- 메신저 드래그 복사(옵션) ----------
@@ -333,8 +337,11 @@ function registerIpc() {
     const tone = p.tone === 'work' ? 'work' : 'casual';
     settings.set({ tone });
     if (!ensureKiroReady()) return GATE_REPLY;
-    return service.analyze(p.text, { tone, note: isStr(p.note, 300) ? p.note : '', direction: isStr(p.direction, 80) ? p.direction : '' });
+    if (typeof p.quick === 'boolean') quickPref = p.quick;
+    return service.analyze(p.text, { tone, quick: quickPref, note: isStr(p.note, 300) ? p.note : '', direction: isStr(p.direction, 80) ? p.direction : '' });
   }));
+  // '뜻 먼저 보기' 스위치. 꺼져 있으면 한 줄 뜻용 AI 호출을 따로 보내지 않는다(자동 분석·단축키 경로 포함).
+  ipcMain.handle('set-quick', guard((on) => { quickPref = on === true; return quickPref; }));
   ipcMain.handle('retry', guard(() => (ensureKiroReady() ? service.retry() : GATE_REPLY)));
   ipcMain.handle('set-tone', guard((tone) => { const t = tone === 'work' ? 'work' : 'casual'; settings.set({ tone: t }); pushState(); if (!service.getSession()) return { ok: true }; return ensureKiroReady() ? service.changeTone(t) : GATE_REPLY; }));
   ipcMain.handle('regenerate', guard((p) => (!ensureKiroReady() ? GATE_REPLY : service.regenerate(p && p.kind, p && p.index, p && isStr(p.direction, 80) ? p.direction : ''))));
@@ -413,6 +420,8 @@ function runSmoke() {
           resultsVisible: !document.getElementById('results').hidden,
           error: document.getElementById('error').hidden ? '' : document.getElementById('errorText').textContent,
           hero: document.getElementById('heroText').textContent,
+          quickVisible: !document.getElementById('quickCard').hidden, quickText: document.getElementById('quickText').textContent,
+          inputBelowResults: document.getElementById('results').compareDocumentPosition(document.querySelector('section.input')) === Node.DOCUMENT_POSITION_FOLLOWING,
           terms: n('terms'), meaningVisible: !document.getElementById('meaning').hidden, genBy: document.getElementById('genBy').textContent,
           statements: n('statements'), questions: n('questions'), switches: n('switches'), sources: n('sources'),
           searchNote: document.getElementById('srcStatus').textContent,

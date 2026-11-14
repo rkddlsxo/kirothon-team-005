@@ -117,6 +117,16 @@ test('terms: 뜻 없는 항목과 중복을 버리고, 확신도는 high만 인�
   assert.deepEqual(normalizeResult({}).terms, []);
 });
 
+test('normalizeQuick: 한 줄 뜻이 없으면 null, 확신도는 high만 인정, 200자 제한', () => {
+  const { normalizeQuick } = require('../../src/ai/schema');
+  assert.equal(normalizeQuick({}), null);
+  assert.equal(normalizeQuick({ oneLine: '   ' }), null);
+  assert.equal(normalizeQuick(null), null);
+  assert.deepEqual(normalizeQuick({ oneLine: ' 운이 좋다는 밈이에요 ', confidence: 'high' }), { oneLine: '운이 좋다는 밈이에요', confidence: 'high' });
+  assert.equal(normalizeQuick({ oneLine: 'x', confidence: 'sure' }).confidence, 'low');
+  assert.equal(normalizeQuick({ oneLine: 'x'.repeat(300) }).oneLine.length, 200);
+});
+
 test('terms: 예문(example)을 150자까지 남기고 없으면 빈 문자열', () => {
   const r = normalizeResult({ terms: [{ term: '럭키비키', meaning: '긍정적으로 받아들이는 말', example: '비 와서 쉬는 날이네, 완전 럭키비키잖아' }, { term: 'x', meaning: 'y', example: 'z'.repeat(200) }, { term: 'a', meaning: 'b' }] });
   assert.equal(r.terms[0].example, '비 와서 쉬는 날이네, 완전 럭키비키잖아');

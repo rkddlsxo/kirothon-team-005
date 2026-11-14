@@ -20,6 +20,7 @@ function createFakeProvider() {
     label: '테스트용 가짜 공급자',
     external: false,
     async generate({ ctx, kind, avoid = [] }) {
+      if (kind === 'quick') return JSON.stringify({ oneLine: `${String(ctx.text).slice(0, 20)}에 대한 한 줄 뜻`, confidence: 'high' });
       const topic = String(ctx.topicHint || ctx.text).slice(0, 20);
       const cites = [];
       for (const s of ctx.sources || []) for (const sent of sentences(s.extract)) cites.push({ sent, id: s.id });

@@ -135,10 +135,13 @@ function onEvent(ev) {
       if (ev.stage === 'searching' || ev.stage === 'generating') setStatus(view.stageMessage(ev.stage, ev.providerId));
       else { setStatus(''); setBusy(false); }
       break;
-    case 'sources': renderSources(ev); showQuick(ev.sources); break;
+    case 'sources': renderSources(ev); break;
+    case 'quick': showQuick(ev); document.querySelector('main').scrollTop = 0; break;
     case 'result':
+      // 한 줄 뜻(AI)은 전체 결과가 와도 맨 위에 그대로 둔다.
       state.result = ev.result; $('providerNote').textContent = `생성: ${ev.provider}`;
-      showGeneratedBy(ev.providerId, ev.provider); setStatus(''); hideQuick(); render(); setBusy(false); break;
+      showGeneratedBy(ev.providerId, ev.provider); setStatus(''); render(); setBusy(false);
+      document.querySelector('main').scrollTop = 0; break;
     case 'error': setStatus(''); setBusy(false); setError(ev.message); break;
     case 'regenerated':
       pending.finish(view.pendingKey(ev.kind, ev.index));
@@ -188,16 +191,18 @@ function renderKiroStatus(k) {
 
 function setBusy(b) { state.busy = b; $('analyze').disabled = b; }
 
-// ---- 뜻 먼저 보기: 검색 결과가 오면 AI 생성 전에 첫 출처의 뜻을 짧게 보여 준다 ----
+// ---- 뜻 먼저 보기: 전체 결과와 따로, AI가 짧게 답한 한 줄 뜻을 먼저 보여 준다(quick 이벤트) ----
 const QUICK_KEY = 'aneuncheok.quickMeaning';
 function quickOn() { try { return localStorage.getItem(QUICK_KEY) !== 'off'; } catch { return true; } }
 function setQuickOn(on) { try { localStorage.setItem(QUICK_KEY, on ? 'on' : 'off'); } catch { /* 저장 불가면 이번 실행에만 적용 */ } }
 function hideQuick() { $('quickCard').hidden = true; }
-function showQuick(sources) {
-  const q = $('quick').checked ? view.quickMeaning(sources) : null;
-  if (!q) { hideQuick(); return; }
-  $('quickText').textContent = q.text;
-  $('quickSrc').textContent = `근거 ${q.sourceId} · ${q.name}`;
+function showQuick(ev) {
+  if (!$('quick').checked || !ev.oneLine) { hideQuick(); return; }
+  $('quickText').textContent = ev.oneLine;
+  const who = ev.providerId === 'kiro' ? 'Kiro' : (ev.provider || 'AI');
+  const badge = $('quickSrc');
+  badge.textContent = ev.confidence === 'high' ? `${who} AI 답변 · 출처 없음` : `${who} AI 추정 · 확실하지 않아요`;
+  badge.className = ev.confidence === 'high' ? 'badge gen' : 'badge est';
   $('quickCard').hidden = false;
 }
 
@@ -260,7 +265,7 @@ function applyAppState(s) {
 function submit() {
   const text = $('text').value;
   if (!text.trim()) { setNotice('내용을 입력하거나 붙여넣어 주세요.'); $('text').focus(); return; }
-  bridge.analyze({ text, tone: tone(), note: $('note').value, direction: $('direction').value });
+  bridge.analyze({ text, tone: tone(), quick: $('quick').checked, note: $('note').value, direction: $('direction').value });
 }
 
 $('analyze').addEventListener('click', submit);
@@ -286,7 +291,8 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') bridge.hid
 $('auto').addEventListener('change', async (e) => { const on = await bridge.setAuto(e.target.checked); e.target.checked = Boolean(on); });
 $('provider').addEventListener('change', (e) => bridge.setProvider(e.target.value));
 $('quick').checked = quickOn();
-$('quick').addEventListener('change', (e) => { setQuickOn(e.target.checked); if (!e.target.checked) hideQuick(); });
+bridge.setQuick($('quick').checked);
+$('quick').addEventListener('change', (e) => { setQuickOn(e.target.checked); bridge.setQuick(e.target.checked); if (!e.target.checked) hideQuick(); });
 $('kiroCheck').addEventListener('click', () => bridge.checkKiro());
 document.querySelectorAll('input[name=tone]').forEach((r) => r.addEventListener('change', () => { if (state.result) bridge.setTone(tone()); }));
 $('fuBtn').addEventListener('click', submitFollowup);

@@ -52,35 +52,11 @@
   </section>
 
   <main id="mainView" hidden>
-    <section class="input" aria-label="분석할 내용">
-      <label for="text">무슨 얘기가 나왔나요?</label>
-      <textarea id="text" rows="3" maxlength="1500" placeholder="예: 양자 컴퓨터" aria-describedby="textHint"></textarea>
-      <p id="textHint" class="hint"><kbd>Enter</kbd> 바로 분석 · <kbd>Shift</kbd>+<kbd>Enter</kbd> 줄바꿈</p>
-      <div class="row">
-        <div class="seg" role="radiogroup" aria-label="말투">
-          <label><input type="radio" name="tone" value="casual" checked /><span>일상 대화</span></label>
-          <label><input type="radio" name="tone" value="work" /><span>업무 대화</span></label>
-        </div>
-        <button id="analyze" class="primary">분석하기</button>
-      </div>
-      <label class="switch opt" title="검색된 뜻을 AI 결과보다 먼저 짧게 보여줘요. 자동 분석이 켜져 있으면 드래그하자마자 떠요.">
-        <input type="checkbox" id="quick" role="switch" />
-        <span class="track" aria-hidden="true"></span>
-        <span>드래그하면 뜻 먼저 보기 <span class="hint">(검색된 뜻을 바로 짧게)</span></span>
-      </label>
-      <details>
-        <summary>맥락·방향 추가 (선택)</summary>
-        <label for="note">주제 맥락 (뜻이 여러 개일 때)</label>
-        <input id="note" type="text" maxlength="300" placeholder="예: 컴퓨터 분야" />
-        <label for="direction">화제 전환 선호 방향</label>
-        <input id="direction" type="text" maxlength="80" placeholder="예: 가벼운 취미 이야기" />
-      </details>
-    </section>
-
+    <!-- 응답 영역을 맨 위에 둔다: 한 줄 뜻(AI) -> 진행 상태 -> 결과. 입력은 그 아래. -->
     <section id="quickCard" class="quickCard" aria-labelledby="quickTitle" aria-live="polite" hidden>
       <h2 id="quickTitle">한 줄 뜻</h2>
       <p id="quickText" class="quickText"></p>
-      <div class="meta"><span id="quickSrc" class="badge src"></span></div>
+      <div class="meta"><span id="quickSrc" class="badge gen"></span></div>
     </section>
     <div id="status" class="status" role="status" aria-live="polite" hidden></div>
     <div id="error" class="banner error" role="alert" hidden>
@@ -137,6 +113,31 @@
         <ul id="sources" class="sources"></ul>
       </section>
     </div>
+
+    <section class="input" aria-label="분석할 내용">
+      <label for="text">무슨 얘기가 나왔나요?</label>
+      <textarea id="text" rows="3" maxlength="1500" placeholder="예: 양자 컴퓨터" aria-describedby="textHint"></textarea>
+      <p id="textHint" class="hint"><kbd>Enter</kbd> 바로 분석 · <kbd>Shift</kbd>+<kbd>Enter</kbd> 줄바꿈</p>
+      <div class="row">
+        <div class="seg" role="radiogroup" aria-label="말투">
+          <label><input type="radio" name="tone" value="casual" checked /><span>일상 대화</span></label>
+          <label><input type="radio" name="tone" value="work" /><span>업무 대화</span></label>
+        </div>
+        <button id="analyze" class="primary">분석하기</button>
+      </div>
+      <label class="switch opt" title="AI에게 한 줄 뜻을 따로 짧게 물어 전체 결과보다 먼저 보여줘요. 켜 두면 분석할 때마다 AI 호출이 한 번 더 나가요.">
+        <input type="checkbox" id="quick" role="switch" />
+        <span class="track" aria-hidden="true"></span>
+        <span>뜻 먼저 보기 <span class="hint">(AI가 한 줄로 먼저 답해요)</span></span>
+      </label>
+      <details>
+        <summary>맥락·방향 추가 (선택)</summary>
+        <label for="note">주제 맥락 (뜻이 여러 개일 때)</label>
+        <input id="note" type="text" maxlength="300" placeholder="예: 컴퓨터 분야" />
+        <label for="direction">화제 전환 선호 방향</label>
+        <input id="direction" type="text" maxlength="80" placeholder="예: 가벼운 취미 이야기" />
+      </details>
+    </section>
   </main>
 
   <footer id="mainFoot" hidden>

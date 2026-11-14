@@ -142,4 +142,12 @@ function extractJson(text) {
   throw new Error('JSON이 완성되지 않았어요');
 }
 
-module.exports = { TARGETS, SUPPORT_MIN, MAX_TERMS, supportScore, normalizeResult, normalizeAnswers, extractJson };
+/** 한 줄 뜻 응답 정규화. 비어 있으면 null(화면에 지어낸 내용을 보이지 않는다). */
+function normalizeQuick(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  const oneLine = str(r.oneLine, 200);
+  if (!oneLine) return null;
+  return { oneLine, confidence: r.confidence === 'high' ? 'high' : 'low' };
+}
+
+module.exports = { normalizeQuick, TARGETS, SUPPORT_MIN, MAX_TERMS, supportScore, normalizeResult, normalizeAnswers, extractJson };
