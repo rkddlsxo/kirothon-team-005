@@ -34,7 +34,6 @@
 ### 근거
 
 - 기존 방식(검색 엔진·AI 챗봇)으로 한 번 확인하려면 드래그 → 복사 → 앱 전환 → 붙여 넣기 → 결과 읽기 → 할 말 정리의 6단계가 필요하다(팀이 직접 단계를 세어 비교).
-- 정량 설문 자료는 아직 없다. 문제 상황은 [PRD.md](PRD.md) 2장(불편한 상황)에 정리한 팀원들의 일상 경험을 바탕으로 한다.
 
 ### 목표
 
@@ -124,13 +123,6 @@ npm run dist
 |---|---|---|
 | Kiro CLI(기본) | `kiro-cli login` 또는 `KIRO_API_KEY`. `KIRO_CLI_PATH`로 경로, `KIRO_TIMEOUT_MS`로 제한 시간(기본 120초) 지정 | `kiro-cli chat --v3 --no-interactive`에 stdin으로 프롬프트 전달, 앱 전용 임시 폴더에서 실행. PATH에 없으면 `%LOCALAPPDATA%\Kiro-Cli\kiro-cli.exe`를 찾음 |
 | OpenAI 호환 | `CHEAT_LLM_BASE_URL`, `CHEAT_LLM_API_KEY`, `CHEAT_LLM_MODEL` | https 또는 localhost만 허용. Kiro 로그인은 이 경우에도 필요 |
-
-### 알려진 제한
-
-- 자동 감지는 대상 앱이 UI Automation 선택 정보를 주거나, 메신저 드래그 복사 대상(카카오톡·디스코드)일 때 동작합니다. 안 되는 앱에서는 앱이 한 번 안내하고, 복사 후 `Ctrl+Alt+Space`나 붙여 넣기를 쓰면 됩니다. 앱별 결과는 [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
-- 메신저 드래그 복사를 켜면 Windows 클립보드 기록(Win+V)에 대신 복사한 내용이 남을 수 있습니다.
-- 문장 생성은 내 Kiro 계정 크레딧을 씁니다. Kiro 구독을 최종 사용자 서비스에 쓰는 것의 허용 여부는 확인 중입니다([docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md)).
-- 검색은 위키백과 기반이라 최신 뉴스성 주제는 부족할 수 있고, 부족하면 화면에 표시합니다.
 
 ## 7. 테스트
 
