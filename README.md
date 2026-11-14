@@ -134,7 +134,7 @@ npm run dist
 ## 7. 테스트
 
 ```bash
-npm test                  # 단위 + 속성 기반 테스트 166개 (node --test "test/**/*.test.js")
+npm test                  # 단위 + 속성 기반 테스트 172개 (node --test "test/**/*.test.js")
 npm run check             # 보안 정적 점검 (렌더러 XSS, 셸 실행, 키 입력·클립보드 범위, 외부 브라우저 열기 등)
 npm run smoke             # 실제 Electron 창에서 위키백과 검색 -> 결과 렌더링 (네트워크 필요)
 node scripts/smoke.js --gate   # Kiro 로그인 첫 화면 흐름
