@@ -4,7 +4,7 @@
 
 낯선 주제가 대화에 등장했을 때, **텍스트를 드래그하기만 하면** 바로 쓸 수 있는 문장과 예상 질문 답변, 자연스러운 화제 전환 문장을 보여주는 Windows 데스크톱 대화 보조 앱입니다.
 
-- Demo: 로컬 실행 앱입니다(배포 URL 없음). 시연 영상 링크: _(녹화 후 여기에 추가)_
+- Demo: Windows 11용 실행 파일(프리릴리스) [v0.1.0 다운로드](https://github.com/rkddlsxo/kirothon-team-005/releases/tag/v0.1.0). Kiro CLI 설치·로그인이 필요합니다. 시연 영상 링크: _(녹화 후 여기에 추가)_
 - 화면 예시: [docs/assets/screenshot.png](docs/assets/screenshot.png)
 
 ![결과 창](docs/assets/screenshot.png)
